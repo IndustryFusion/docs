@@ -162,5 +162,7 @@ The process of RKE2 provisioning can be watched in the 'Cluster Management' page
 
 ### 4. MQTT Broker on the Factory Server
 
+The MQTT broker must be deployed to the factory server as a Kubernetes pod. Copy the given 'mqtt-broker-gateway' folder to the factory server, using Kubectl targeting the local cluster, execute the following command. **Note:** Create an empty sub-folder with name 'mosquitto' inside the 'mqtt-broker-gateway' folder, before this command, also make sure broker.yaml is pointing to the right folder paths.
+
 
 
