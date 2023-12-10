@@ -17,6 +17,7 @@ b. In order to enable the digitization of the machines with MQTT Publisher, make
 
 ![image](https://github.com/IndustryFusion/docs/assets/128161316/7d2eda97-9797-4b08-9285-ca7f4060d443)
 
+
 ### 2. Factory Server
 
 #### a. Hardware Requirements:
@@ -69,7 +70,9 @@ Login to the factory server, and perform following steps.
 
 **Fleet** - Continous Delivery Plugin will be installed by default. 
 
-**Elemental** - OS management plugin must be installed seperatley. Follow these [instructions](https://elemental.docs.rancher.com/quickstart-ui#install-elemental-operator) to install Elemental using Rancher UI. **Note** - Follow the above doc untill you can see the OS Manamagent option in the Rancher Manager menu. Further steps for creating Machine Registration Endpoint and Preparing Seed Image will be described below.
+**Elemental** - OS management plugin must be installed seperatley. Follow these [instructions](https://elemental.docs.rancher.com/quickstart-ui#install-elemental-operator) to install Elemental using Rancher UI. 
+
+**Note** - Follow the above doc untill you can see the OS Manamagent option in the Rancher Manager menu. Further steps for creating Machine Registration Endpoint and Preparing Seed Image will be described below.
 
 **Machine Registration Endpoint Creation**
 
@@ -145,6 +148,7 @@ Click 'Create' in the 'Registration Endpoint: Create' page after entering the ab
 
 ![image](https://github.com/IndustryFusion/docs/assets/128161316/a0d4dfd4-3c30-440d-b9a9-19f4cb3616b3)
 
+
 ### 3. Smartbox Onboarding
 
 #### a. Hardware Requirements
@@ -152,9 +156,10 @@ Click 'Create' in the 'Registration Endpoint: Create' page after entering the ab
 * Memory - 8 GB DDR4.
 * Storage - Minimum, 64 GB.
 
-Burn the downloaded ISO file in to an USB drive and boot the smartbox from the drive, click 'Elemental Install'. Rest of the process is automated untill a new machine appears in the below shown 'Inventory of Machines' page and becomes active. The same USB drive can be used again to onboard the devices in case of TMP 2.0 enabled msmartboxes. In TPM 2.0 disabled devices, create a new registration endpoint with new 'emulated-tpm-seed' value, build the ISO, download and install for every new machine.
+Burn the downloaded ISO file in to an USB drive and boot the smartbox from the drive, click 'Elemental Install'. Rest of the process is automated untill a new machine appears in the below shown 'Inventory of Machines' page and becomes active. The same USB drive can be used again to onboard the devices in case of TMP 2.0 enabled smartboxes. In TPM 2.0 disabled devices, create a new registration endpoint with new 'emulated-tpm-seed' value, build the ISO, download and install for every new machine.
 
 ![image](https://github.com/IndustryFusion/docs/assets/128161316/75d9202f-c3d2-48cf-a3f7-f072fa0209ee)
+
 
 #### b. RKE2 for Smartbox
 
@@ -167,6 +172,7 @@ In the next page, give a name to the cluster, select the latest RKE2 version, se
 ![image](https://github.com/IndustryFusion/docs/assets/128161316/8b89f886-3e17-4624-bb03-a5d58951ebf3)
 
 The process of RKE2 provisioning can be watched in the 'Cluster Management' page of Rancher. Once the cluster is active, further IFF smartbox services can be deployed. (Will be described in the later section).
+
 
 ### 4. MQTT Broker on the Factory Server
 
@@ -181,6 +187,7 @@ The MQTT broker must be deployed to the factory server as a Kubernetes pod. Copy
 `kubectl apply -f broker.yaml`
 
 Once the MQTT broker pod is active, the machines with MQTT publishers can be updated with the IP address of the factory server with port 1883.
+
 
 ### 5. Deployment of Process Digital Twin (PDT) on Factory Server
 
@@ -248,6 +255,7 @@ For MQTT based machines, Kustomize will be used to deploy the services.
 The deployment config files related to both these services are located [here](https://github.com/IndustryFusion/fleet-deployments) in a GitHub repo.
 
 However, the deployment files expect that a digital asset is already created in the PDT and the unique URN of the asset is ready.
+
 
 **Create a sample Asset in PDT using Scorpio REST API**
 
