@@ -16,10 +16,11 @@ b. In order to enable the digitization of the machines with MQTT Publisher, make
 ![image](https://github.com/IndustryFusion/docs/assets/128161316/7d2eda97-9797-4b08-9285-ca7f4060d443)
 
 ### 2. Factory Server
+
 #### a. Hardware Requirements:
 * Intel Xeon Processor - Minimum, 8 Cores (16 CPU Threads).
 * Memory - Minimum, 16 GB DDR4.
-* Storage - Minimum, 512 GB SSD.
+* Storage - Minimum, 512 GB.
 
 #### b. SLE Micro OS - 5.5
 Visit this page [OS download](https://www.suse.com/download/sle-micro/) and download the 'SLE-Micro-5.5-DVD-x86_64-GM-Media1.iso' image. Flash the ISO to an USB drive (Min. 16GB). Insert and boot the server from the USB drive. Follow the on-screen steps to complete the OS installation. Skip the 'Product Registration' page if the free version is desired.
@@ -144,11 +145,16 @@ Click 'Create' in the 'Registration Endpoint: Create' page after entering the ab
 
 ### 3. Smartbox Onboarding
 
+#### a. Hardware Requirements
+* Intel Atom Processor - 4 Cores.
+* Memory - 8 GB DDR4.
+* Storage - Minimum, 64 GB.
+
 Burn the downloaded ISO file in to an USB drive and boot the smartbox from the drive, click 'Elemental Install'. Rest of the process is automated untill a new machine appears in the below shown 'Inventory of Machines' page and becomes active. The same USB drive can be used again to onboard the devices in case of TMP 2.0 enabled msmartboxes. In TPM 2.0 disabled devices, create a new registration endpoint with new 'emulated-tpm-seed' value, build the ISO, download and install for every new machine.
 
 ![image](https://github.com/IndustryFusion/docs/assets/128161316/75d9202f-c3d2-48cf-a3f7-f072fa0209ee)
 
-#### RKE2 for Smartbox
+#### b. RKE2 for Smartbox
 
 Select one free device (single node cluster) from inventory list as shown below and click 'Create Elemental Cluster'.
 
@@ -182,19 +188,13 @@ Once the local tests are passed in the above documentation, perform the followin
 
 * Verify all pods are running using `kubectl -n iff get pods`, in some slow systems keycloak realm import job might fail and needs to be restarted, this is due to postgres database not being ready on time.
 
-* Configure Keycloak.local dns
+* Edit the /etc/hosts file and add DNS entry for PDT APIs as shown below.
 
-  a. First, find out which node in RKE2 is used as ingress ip by using `kubectl -n iff get ingress/keycloak-ingress -o jsonpath= 
-     {".status.loadBalancer.ingress[0].ip"}`
-
-  b. Say the determined IP-addres is `172.27.0.2`. Then Kubernetes internal, the keycloak.local has to be mapped to this IP. To do that, edit the coredns 
-     configmap of kubesystem:
-     `kubectl -n kube-system edit cm/coredns`
-
-     ```
-     NodeHosts: |
-     172.27.0.2 keycloak.local # <= add here the keycloak.local entry
-     ```
+  ```
+  <IP address of the factory server> keycloak.local
+  <IP address of the factory server> ngsild.local
+  <IP address of the factory server> alerta.local
+  ```
 
 * Login to keycloak with browser using `http://keycloak.local/auth`
 
@@ -224,15 +224,19 @@ In order to establish the connection to PDT located in factory server from smart
 Before deploying these services, respective Docker images must be built and pushed to a custom Docker Hub repo. 
 
 **1. fusionopcuadataservice**
+
 Build the Docker image using the Dockerfile located in this [repo](https://github.com/IndustryFusion/fusionopcuadataservice). Push the image with a desired name and version to your Docker Hub repo.
    
 **2. fusionmqttdataservice**
+
 Build the Docker image using the Dockerfile located in this [repo](https://github.com/IndustryFusion/fusionmqttdataservice). Push the image with a desired name and version to your Docker Hub repo.
 
 **4. oisp-token-operator** (Will be deprecated soon)
+
 Build the Docker image using the Dockerfile located in this [repo](https://github.com/IndustryFusion/oisp-token-operator). Push the image with a desired name and version to your Docker Hub repo.
 
 **5. oisp-iot-agent**
+
 Build the Docker image using the Dockerfile located in this [repo](https://github.com/Open-IoT-Service-Platform/oisp-iot-agent). Push the image with a desired name and version to your Docker Hub repo.
 
 For OPC-UA based machines, with the help of Helm charts, Akri discovery handler will be used to deploy the IFF services automatically upon finding the active server.
@@ -241,9 +245,77 @@ For MQTT based machines, Kustomize will be used to deploy the services.
 
 The deployment config files related to both these services are located [here](https://github.com/IndustryFusion/fleet-deployments) in a GitHub repo.
 
-Clone the correct branch according to the machine protocol to local, update the files as described in the READMEs of the respective branches. However, the deployment files also expect that a digital asset is already created in the PDT and the unique URN of the asset is ready. Also, for OPC-UA machines - Namespace, Identifier of the desired datapoint to fetch must be known at this point.
+However, the deployment files expect that a digital asset is already created in the PDT and the unique URN of the asset is ready.
 
+**Create a sample Asset in PDT using Scorpio REST API**
+
+Login in to the factory server, and follow te below instructions.
+
+1. Get Keycloak Access Token. Update the username and password in below <>.
+
+   ```
+   curl --location 'https://keycloak.local/auth/realms/iff/protocol/openid-connect/token' \
+   --header 'Content-Type: application/x-www-form-urlencoded' \
+   --data-urlencode 'grant_type=password' \
+   --data-urlencode 'client_id=scorpio' \
+   --data-urlencode 'username=<keycloak realm user>' \
+   --data-urlencode 'password=<keycloak real user's password>'
+   ```
+   
+Copy the access token from the response.
+
+2. Create an asset in the PDT. Update token from last step.
+
+   ```
+   curl --location 'ngsild.local/scorpio/ngsi-ld/v1/entities/' \
+   --header 'Content-Type: application/ld+json' \
+   --header 'Accept: application/ld+json' \
+   --header 'Authorization: Bearer <token>' \
+   --data-raw '{
+       "@context": "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
+       "id": "urn:ngsi-ld:asset:2:47",
+       "type": "http://www.industry-fusion.org/schema#laser-cutter",
+       "http://www.industry-fusion.org/schema#alias": {
+           "type": "Property",
+           "https://uri.etsi.org/ngsi-ld/hasValue": "Smart Laser"
+       },
+       "http://www.industry-fusion.org/schema#product-name": {
+           "type": "Property",
+           "https://uri.etsi.org/ngsi-ld/hasValue": "MSE Smart FL"
+       }
+   }'
+   ```
+
+The asset is successfully created if the response is 200.
+
+Clone the correct branch according to the machine protocol to local. Using the asset ID created in the above step, and all the other information from previous steps, update the deployment files as described in the READMEs of the respective branches. Also, for OPC-UA machines - Namespace, Identifier of the desired datapoint to fetch must be known at this point and for MQTT based machines, the topic of the datapoint, if the datatype is JSON, the respective key must also be known.
 
 Once the changes are done, push the branch to a different GitHub remote repository with a desired branch name. Note down the URL and branch of this new repo.
+
+** Fleet - Continous Delivery **
+
+The Rancher's Fleet plugin is used to deploy the IFF smartbox services directly from the above created new GitHub repo and branch. 
+
+Go to the 'Continuous Delivery' page in Rancher, click 'Git Repos' and then click 'Add Repository'. In the below shown page, add a name, paste the URL of the GitHub repo from last step, mention the branch name. If the repository is private, add credentials in 'Git Authentication', then click 'Next'.
+
+![image](https://github.com/IndustryFusion/docs/assets/128161316/a8b308de-24f6-40f9-898a-f771f0ac57cb)
+
+In the below shown page, select a target Elemental created RKE2 smartbox cluster, then Click 'Create'.
+
+![image](https://github.com/IndustryFusion/docs/assets/128161316/11eb8da3-e4a3-4780-9c61-6ccae3ebcecd)
+
+The IFF smartbox related services will deployed to the single node cluster that will be responsbile for sending the machine data to PDT's digital asset. Any further changes to the deployment configs in the associated GitHub repo will be deployed automatically in future.
+
+### 7. NeuVector Container Security Platform
+
+If needed, The NeuVector must be installed on both factory server and all smartboxes.
+
+Visit the documentation [here](https://open-docs.neuvector.com/deploying/rancher) for installing NeuVector from Rancher for both factory server and smartboxes.
+
+Once the installtion is done, to use the federated multi-cluster management from factroy server as primary cluster and smartboxes as secondary, use these [instructions](https://open-docs.neuvector.com/navigation/multicluster#configuring-the-primary-and-remote-clusters). 
+
+Once the federated management is active, the dashboard of NeuVector from the primary cluster looks like as shown below.
+
+![image](https://github.com/IndustryFusion/docs/assets/128161316/bd8f7cfb-45ad-49c5-aec4-0a007dab8bae)
 
 
