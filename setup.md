@@ -184,15 +184,17 @@ Once the local tests are passed in the above documentation, perform the followin
 
 * Configure Keycloak.local dns
 
-First, find out which node in RKE2 is used as ingress ip by using `kubectl -n iff get ingress/keycloak-ingress -o jsonpath={".status.loadBalancer.ingress[0].ip"}`
+  a. First, find out which node in RKE2 is used as ingress ip by using `kubectl -n iff get ingress/keycloak-ingress -o jsonpath= 
+     {".status.loadBalancer.ingress[0].ip"}`
 
-Say the determined IP-addres is `172.27.0.2`. Then Kubernetes internal, the keycloak.local has to be mapped to this IP. To do that, edit the coredns configmap of kubesystem:
-`kubectl -n kube-system edit cm/coredns`
+  b. Say the determined IP-addres is `172.27.0.2`. Then Kubernetes internal, the keycloak.local has to be mapped to this IP. To do that, edit the coredns 
+     configmap of kubesystem:
+     `kubectl -n kube-system edit cm/coredns`
 
-```
- NodeHosts: |
-    172.27.0.2 keycloak.local # <= add here the keycloak.local entry
-```
+     ```
+     NodeHosts: |
+     172.27.0.2 keycloak.local # <= add here the keycloak.local entry
+     ```
 
 * Login to keycloak with browser using `http://keycloak.local/auth`
 
