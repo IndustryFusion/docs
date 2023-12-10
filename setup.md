@@ -74,7 +74,7 @@ Go to OS management option in the Rancher - Click on 'Registration Endpoints' an
 
 ![image](https://github.com/IndustryFusion/docs/assets/128161316/3ad21d4d-a8fa-4eab-9a8b-45a5af26e697)
 
-IFF has tested two types of smartbox/gateway configurations - With Truted Platform Module 2.0 (TPM) and Without TPM 2.0
+IFF has tested two types of smartbox/gateway configurations - With Truted Platform Module 2.0 (TPM) and Without TPM 2.0.
 
 * With Truted Platform Module 2.0
 
@@ -150,15 +150,17 @@ Burn the downloaded ISO file in to an USB drive and boot the smartbox from the d
 
 #### RKE2 for Smartbox
 
-Select one desired device (single node cluster) from inventory list as shown below and click 'Create Elemental Cluster'.
+Select one free device (single node cluster) from inventory list as shown below and click 'Create Elemental Cluster'.
 
 ![image](https://github.com/IndustryFusion/docs/assets/128161316/512357d8-1e9b-41f8-8ac6-5180f8622be9)
 
 In the next page, give a name to the cluster, select the latest RKE2 version, select the configurations as shown below, click 'Create'.
 
-![image](https://github.com/IndustryFusion/docs/assets/128161316/e5312c36-32e8-477d-9df6-771c80a800ae)
+![image](https://github.com/IndustryFusion/docs/assets/128161316/8b89f886-3e17-4624-bb03-a5d58951ebf3)
 
 The process of RKE2 provisioning can be watched in the 'Cluster Management' page of Rancher. Once the cluster is active, further IFF smartbox services can be deployed. (Will be described in the later section).
 
 ### 4. MQTT Broker on the Factory Server
+
+
 
