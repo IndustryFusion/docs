@@ -162,7 +162,53 @@ The process of RKE2 provisioning can be watched in the 'Cluster Management' page
 
 ### 4. MQTT Broker on the Factory Server
 
-The MQTT broker must be deployed to the factory server as a Kubernetes pod. Copy the given 'mqtt-broker-gateway' folder to the factory server, using Kubectl targeting the local cluster, execute the following command. **Note:** Create an empty sub-folder with name 'mosquitto' inside the 'mqtt-broker-gateway' folder, before this command, also make sure broker.yaml is pointing to the right folder paths.
+The MQTT broker must be deployed to the factory server as a Kubernetes pod. Copy the given 'mqtt-broker-gateway' folder to the factory server, using Kubectl targeting the local cluster, execute the following commands. 
 
+**Note:** Create an empty sub-folder with name 'mosquitto' inside the 'mqtt-broker-gateway' folder, before running below command. Also make sure 'broker.yaml' is pointing to the right folder paths.
+
+`cd mqtt-broker-gateway`
+
+`mkdir mosquitto`
+
+`kubectl apply -f broker.yaml`
+
+Once the MQTT broker pod is active, the machines with MQTT publishers can be updated with the IP address of the factory server with port 1883.
+
+### 5. Deployment of Process Digital Twin (PDT) on Factory Server
+
+Follow the local deployment documentation [here](https://github.com/IndustryFusion/DigitalTwin/blob/main/helm/README.md#building-and-installation-of-platform-locally) to install the PDT components on the factory server.
+
+Once the local tests are passed in the above documentation, perform the following.
+
+* Verify all pods are running using `kubectl -n iff get pods`, in some slow systems keycloak realm import job might fail and needs to be restarted, this is due to postgres database not being ready on time.
+
+* Configure Keycloak.local dns
+
+First, find out which node in RKE2 is used as ingress ip by using `kubectl -n iff get ingress/keycloak-ingress -o jsonpath={".status.loadBalancer.ingress[0].ip"}`
+
+Say the determined IP-addres is `172.27.0.2`. Then Kubernetes internal, the keycloak.local has to be mapped to this IP. To do that, edit the coredns configmap of kubesystem:
+`kubectl -n kube-system edit cm/coredns`
+
+```
+ NodeHosts: |
+    172.27.0.2 keycloak.local # <= add here the keycloak.local entry
+```
+
+* Login to keycloak with browser using `http://keycloak.local/auth`
+
+  a. The username is `admin`, the password can be found by
+  
+     ```
+     kubectl -n iff get secret/keycloak-initial-admin -o=jsonpath='{.data.password}' | base64 -d | xargs echo
+     ```
+
+* Verify that there are 2 realms `master`, `iff`
+
+* Verify that there is a user in realm `iff`, named: `realm_user`
+
+  a. The password for `realm_user` can be found by
+     ```
+     kubectl -n iff get secret/credential-iff-realm-user-iff -o jsonpath='{.data.password}'| base64 -d | xargs echo
+     ```
 
 
