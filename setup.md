@@ -142,3 +142,23 @@ Click 'Create' in the 'Registration Endpoint: Create' page after entering the ab
 
 ![image](https://github.com/IndustryFusion/docs/assets/128161316/a0d4dfd4-3c30-440d-b9a9-19f4cb3616b3)
 
+### 3. Smartbox Onboarding
+
+Burn the downloaded ISO file in to an USB drive and boot the smartbox from the drive, click 'Elemental Install'. Rest of the process is automated untill a new machine appears in the below shown 'Inventory of Machines' page and becomes active. The same USB drive can be used again to onboard the devices in case of TMP 2.0 enabled msmartboxes. In TPM 2.0 disabled devices, create a new registration endpoint with new 'emulated-tpm-seed' value, build the ISO, download and install for every new machine.
+
+![image](https://github.com/IndustryFusion/docs/assets/128161316/75d9202f-c3d2-48cf-a3f7-f072fa0209ee)
+
+#### RKE2 for Smartbox
+
+Select one desired device (single node cluster) from inventory list as shown below and click 'Create Elemental Cluster'.
+
+![image](https://github.com/IndustryFusion/docs/assets/128161316/512357d8-1e9b-41f8-8ac6-5180f8622be9)
+
+In the next page, give a name to the cluster, select the latest RKE2 version, select the configurations as shown below, click 'Create'.
+
+![image](https://github.com/IndustryFusion/docs/assets/128161316/e5312c36-32e8-477d-9df6-771c80a800ae)
+
+The process of RKE2 provisioning can be watched in the 'Cluster Management' page of Rancher. Once the cluster is active, further IFF smartbox services can be deployed. (Will be described in the later section).
+
+### 4. MQTT Broker on the Factory Server
+
