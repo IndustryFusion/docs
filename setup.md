@@ -302,7 +302,7 @@ Clone the correct branch according to the machine protocol to local. Using the a
 
 Once the changes are done, push the branch to a different GitHub remote repository with a desired branch name. Note down the URL and branch of this new repo.
 
-** Fleet - Continous Delivery **
+**Fleet - Continous Delivery**
 
 The Rancher's Fleet plugin is used to deploy the IFF smartbox services directly from the above created new GitHub repo and branch. 
 
@@ -316,7 +316,7 @@ In the below shown page, select a target Elemental created RKE2 smartbox cluster
 
 The IFF smartbox related services will deployed to the single node cluster that will be responsbile for sending the machine data to PDT's digital asset. Any further changes to the deployment configs in the associated GitHub repo will be deployed automatically in future.
 
-### 7. NeuVector Container Security Platform
+### 7. NeuVector - Container Security Platform
 
 If needed, The NeuVector must be installed on both factory server and all smartboxes.
 
