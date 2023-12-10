@@ -228,7 +228,7 @@ In order to establish the connection to PDT located in factory server from smart
 
 `sudo kubefwd services -n oisp --kubeconfig='<path of the kubeconfig file>'`
 
-### 6. Deployment of IFF Smartbox Services.
+### 6. Deployment of IFF Smartbox Services
 
 Before deploying these services, respective Docker images must be built and pushed to a custom Docker Hub repo. 
 
