@@ -1,4 +1,4 @@
-Setup Manual - IndustryFusion Open
+# Setup Manual - IndustryFusion Open
 
 The following documentation steps illustrates the setup of IFF open source components including PDT inside a factory premise as shown in the figure below. The main goal is to enable a Kuberenets expert to setup the IFF open stack and start with the creation of digital assets, semantic model and validation for industrial machines/processes supporting MQTT/OPC-UA protocols at the machine end.
 
