@@ -213,4 +213,37 @@ Once the local tests are passed in the above documentation, perform the followin
      kubectl -n iff get secret/credential-iff-realm-user-iff -o jsonpath='{.data.password}'| base64 -d | xargs echo
      ```
 
+**Note:** The realm_user and the associated password will be used in the IFF smartbox services.
+
+In order to establish the connection to PDT located in factory server from smartbox, the OISP GW services in the PDT must be exposed locally as shown below using [Kubefwd](https://github.com/txn2/kubefwd).
+
+`sudo kubefwd services -n oisp --kubeconfig='<path of the kubeconfig file>'`
+
+### 6. Deployment of IFF Smartbox Services.
+
+Before deploying these services, respective Docker images must be built and pushed to a custom Docker Hub repo. 
+
+**1. fusionopcuadataservice**
+Build the Docker image using the Dockerfile located in this [repo](https://github.com/IndustryFusion/fusionopcuadataservice). Push the image with a desired name and version to your Docker Hub repo.
+   
+**2. fusionmqttdataservice**
+Build the Docker image using the Dockerfile located in this [repo](https://github.com/IndustryFusion/fusionmqttdataservice). Push the image with a desired name and version to your Docker Hub repo.
+
+**4. oisp-token-operator** (Will be deprecated soon)
+Build the Docker image using the Dockerfile located in this [repo](https://github.com/IndustryFusion/oisp-token-operator). Push the image with a desired name and version to your Docker Hub repo.
+
+**5. oisp-iot-agent**
+Build the Docker image using the Dockerfile located in this [repo](https://github.com/Open-IoT-Service-Platform/oisp-iot-agent). Push the image with a desired name and version to your Docker Hub repo.
+
+For OPC-UA based machines, with the help of Helm charts, Akri discovery handler will be used to deploy the IFF services automatically upon finding the active server.
+
+For MQTT based machines, Kustomize will be used to deploy the services.
+
+The deployment config files related to both these services are located [here](https://github.com/IndustryFusion/fleet-deployments) in a GitHub repo.
+
+Clone the correct branch according to the machine protocol to local, update the files as described in the READMEs of the respective branches. However, the deployment files also expect that a digital asset is already created in the PDT and the unique URN of the asset is ready. Also, for OPC-UA machines - Namespace, Identifier of the desired datapoint to fetch must be known at this point.
+
+
+Once the changes are done, push the branch to a different GitHub remote repository with a desired branch name. Note down the URL and branch of this new repo.
+
 
