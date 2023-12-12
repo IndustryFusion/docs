@@ -5,6 +5,7 @@ The following documentation steps illustrates the setup of IFF open source compo
 
 ![image](https://github.com/IndustryFusion/docs/assets/128161316/dfa28417-bd79-465f-9e6e-c25d4029251b)
 
+
 ### 1. OPC-UA Server / MQTT Publisher
 
 a. In order to enable the digitization of the machines with OPC-UA server, make sure that the machine is connected to the factory LAN. Note down the IP address and port of the OPC-UA server. For example, "opc.tcp://192.168.49.198:62548".
@@ -25,15 +26,18 @@ b. In order to enable the digitization of the machines with MQTT Publisher, make
 * Memory - Minimum, 16 GB DDR4.
 * Storage - Minimum, 512 GB.
 
+
 #### b. SLE Micro OS - 5.5
 Visit this page [OS download](https://www.suse.com/download/sle-micro/) and download the 'SLE-Micro-5.5-DVD-x86_64-GM-Media1.iso' image. Flash the ISO to an USB drive (Min. 16GB). Insert and boot the server from the USB drive. Follow the on-screen steps to complete the OS installation. Skip the 'Product Registration' page if the free version is desired.
 
 For more detailed installation steps follow this [documentation](https://documentation.suse.com/sle-micro/5.5/html/SLE-Micro-all/cha-install.html).
 
+
 #### c. RKE2 - Kubernetes Distribution
 Install the RKE2 latest stable version on the previously installed OS. IFF stack currently uses single node for the factory server, follow the instructions [here](https://docs.rke2.io/install/quickstart#server-node-installation) to install the server node.
 
 Once the installation of RKE2 is done, Kubectl CLI must be able to communicate with the Kubernetes API and execute commands.
+
 
 #### d. Rancher with Fleet and Elemental Plugins
 Follow these [instructions](https://ranchermanager.docs.rancher.com/pages-for-subheaders/install-upgrade-on-a-kubernetes-cluster#install-the-rancher-helm-chart) to install the Rancher tool using Helm charts.
@@ -45,13 +49,16 @@ Follow these [instructions](https://ranchermanager.docs.rancher.com/pages-for-su
 4. Also, global.cattle.psp.enabled to false.
 5. Set the hostname to your desired name. For e.g, rancher.iff.org
 
+
 **Important:** 
 
 Once the installation is done, set the DNS for the factory server in the LAN and set the hostname from last step. If not, update /etc/hosts file to have this DNS atleast. The Rancher UI will be live at this DNS in the LAN.
 
+
 **Troubleshooting:**
 
 If there any issue with resolving DNS name in the factory server. Most probably it is because of NetworkManager.
+
 
 **Solution:**
 
@@ -68,11 +75,15 @@ Login to the factory server, and perform following steps.
         sudo service network restart
         sudo service NetworkManager restart
 
+
 **Fleet** - Continous Delivery Plugin will be installed by default. 
+
 
 **Elemental** - OS management plugin must be installed seperatley. Follow these [instructions](https://elemental.docs.rancher.com/quickstart-ui#install-elemental-operator) to install Elemental using Rancher UI. 
 
+
 **Note** - Follow the above doc untill you can see the OS Manamagent option in the Rancher Manager menu. Further steps for creating Machine Registration Endpoint and Preparing Seed Image will be described below.
+
 
 **Machine Registration Endpoint Creation**
 
@@ -143,6 +154,7 @@ machineInventoryLabels:
 ```
 
 **Note:** Update the 'emulated-tpm-seed' to a unique number everytime for each TPM 2.0 disabled machine. Also, according to the smartbox configuration, update the device path and password.
+
 
 Click 'Create' in the 'Registration Endpoint: Create' page after entering the above cloud configs accordingly. The below page will be visible, select the latest Elemental OS version and click 'Build ISO', then Click 'Download ISO' to download the ISO file.
 
@@ -224,37 +236,44 @@ Once the local tests are passed in the above documentation, perform the followin
 
 **Note:** The realm_user and the associated password will be used in the IFF smartbox services.
 
+
 In order to establish the connection to PDT located in factory server from smartbox, the OISP GW services in the PDT must be exposed locally as shown below using [Kubefwd](https://github.com/txn2/kubefwd).
 
 `sudo kubefwd services -n oisp --kubeconfig='<path of the kubeconfig file>'`
+
 
 ### 6. Deployment of IFF Smartbox Services
 
 Before deploying these services, respective Docker images must be built and pushed to a custom Docker Hub repo. 
 
+
 **1. fusionopcuadataservice**
 
+
 Build the Docker image using the Dockerfile located in this [repo](https://github.com/IndustryFusion/fusionopcuadataservice). Push the image with a desired name and version to your Docker Hub repo.
+
    
 **2. fusionmqttdataservice**
 
+
 Build the Docker image using the Dockerfile located in this [repo](https://github.com/IndustryFusion/fusionmqttdataservice). Push the image with a desired name and version to your Docker Hub repo.
+
 
 **4. oisp-token-operator** (Will be deprecated soon)
 
+
 Build the Docker image using the Dockerfile located in this [repo](https://github.com/IndustryFusion/oisp-token-operator). Push the image with a desired name and version to your Docker Hub repo.
+
 
 **5. oisp-iot-agent**
 
+
 Build the Docker image using the Dockerfile located in this [repo](https://github.com/Open-IoT-Service-Platform/oisp-iot-agent). Push the image with a desired name and version to your Docker Hub repo.
 
-For OPC-UA based machines, with the help of Helm charts, Akri discovery handler will be used to deploy the IFF services automatically upon finding the active server.
 
-For MQTT based machines, Kustomize will be used to deploy the services.
+For OPC-UA based machines, with the help of Helm charts, Akri discovery handler will be used to deploy the IFF services automatically upon finding the active server. For MQTT based machines, Kustomize will be used to deploy the services.
 
-The deployment config files related to both these services are located [here](https://github.com/IndustryFusion/fleet-deployments) in a GitHub repo.
-
-However, the deployment files expect that a digital asset is already created in the PDT and the unique URN of the asset is ready.
+The deployment config files related to both these services are located [here](https://github.com/IndustryFusion/fleet-deployments) in a GitHub repo. However, the deployment files expect that a digital asset is already created in the PDT and the unique URN of the asset is ready.
 
 
 **Create a sample Asset in PDT using Scorpio REST API**
@@ -296,6 +315,7 @@ Clone the correct branch according to the machine protocol to local. Using the a
 
 Once the changes are done, push the branch to a different GitHub remote repository with a desired branch name. Note down the URL and branch of this new repo.
 
+
 **Fleet - Continous Delivery**
 
 The Rancher's Fleet plugin is used to deploy the IFF smartbox services directly from the above created new GitHub repo and branch. 
@@ -309,6 +329,7 @@ In the below shown page, select a target Elemental created RKE2 smartbox cluster
 ![image](https://github.com/IndustryFusion/docs/assets/128161316/11eb8da3-e4a3-4780-9c61-6ccae3ebcecd)
 
 The IFF smartbox related services will deployed to the single node cluster that will be responsbile for sending the machine data to PDT's digital asset. Any further changes to the deployment configs in the associated GitHub repo will be deployed automatically in future.
+
 
 ### 7. Semantic Modelling
 
@@ -366,6 +387,7 @@ Once the JSON-Schema is created as shown above, it can be validated with the JSO
 
 Detailed tutorial for such semantic modelling also with relationship concept to other assets can be found [here](https://github.com/IndustryFusion/DigitalTwin/blob/main/semantic-model/datamodel/Tutorial.md)
 
+
 #### Converting the SHACL to Flink Streaming Validation Jobs
 
 Once the SHACL is ready using the above described tools, the [shacl2flink](https://github.com/IndustryFusion/DigitalTwin/tree/main/semantic-model/shacl2flink) tool can be used to convert and deploy it as jobs on Apache Flink as described in the following steps.
@@ -377,6 +399,7 @@ Step 2: Go to semantic-model/kms/ folder. Create a new folder with a desired nam
 Step 3: Inside the newly created 'demo' folder, create 3 files with contents as shown below.
 
  a. knowledge.ttl, that acts as a base to the SHACL file. Here for our example, this file only contains the type definition.
+ 
  ```
  @prefix : <http://www.industry-fusion.org/schema#> .
  @prefix owl: <http://www.w3.org/2002/07/owl#> .
@@ -391,7 +414,9 @@ Step 3: Inside the newly created 'demo' folder, create 3 files with contents as 
  ```
 
  b. model-example.jsonld, paste the JSON-LD created in the previous steps.
+ 
  c. shacl.ttl, paste the result of the conversion from JSON-Schema.
+
 
 Step 4: Go the semantic-model/shacl2flink folder, and execute the following command.
 
@@ -405,11 +430,15 @@ Step 4: Go the semantic-model/shacl2flink folder, and execute the following comm
 
 Once these steps are completed, the jobs will running in Apache Flink. According to the constraints written in the SHACL file, the alerts can be seen in Alerta UI and API.
 
+
 #### Alerts in Alerta UI
 
 For our example, the constraint for the temperature value is minimum inclusive 15 and maximum inclusive 25. When the value goes out of the range, an alert will be automatically visible in the Alerta UI avaliable at 'alerta.local' endpoint. (Use Keycloak real_user credentials for login)
 
+![image](https://github.com/IndustryFusion/docs/assets/128161316/02196980-4fe2-43cc-9329-76980e71ad62)
+
 Similarly, if two assets are linked to each other using relationships in semantic modelling of the asset, the validation rules can also be extended to check whether the relationship graph is intact or not using SHACL.
+
 
 ### 8. NeuVector - Container Security Platform
 
