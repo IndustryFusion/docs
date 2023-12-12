@@ -274,7 +274,7 @@ Login in to the factory server, and follow te below instructions.
    
 Copy the access token from the response.
 
-2. Create an asset in the PDT. Update token from last step.
+2. Create an simple asset in the PDT without relationships. Update token from last step.
 
    ```
    curl --location 'ngsild.local/scorpio/ngsi-ld/v1/entities/' \
@@ -284,19 +284,13 @@ Copy the access token from the response.
    --data-raw '{
        "@context": "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
        "id": "urn:ngsi-ld:asset:2:47",
-       "type": "http://www.industry-fusion.org/schema#laser-cutter",
-       "http://www.industry-fusion.org/schema#alias": {
-           "type": "Property",
-           "https://uri.etsi.org/ngsi-ld/hasValue": "Smart Laser"
-       },
-       "http://www.industry-fusion.org/schema#product-name": {
-           "type": "Property",
-           "https://uri.etsi.org/ngsi-ld/hasValue": "MSE Smart FL"
-       }
+       "type": "iff:laser-cutter",
+       "alias": "Smart Laser",
+       "product-name": "MSE Smart FL"
    }'
    ```
 
-The asset is successfully created if the response is 200.
+The asset is successfully created if the response is 200. JSON-LD is used as the data model to define assets in PDT. More details on the model of the data can be found [here](https://github.com/IndustryFusion/DigitalTwin/tree/main/semantic-model/datamodel#json-ld-json-for-linked-data).
 
 Clone the correct branch according to the machine protocol to local. Using the asset ID created in the above step, and all the other information from previous steps, update the deployment files as described in the READMEs of the respective branches. Also, for OPC-UA machines - Namespace, Identifier of the desired datapoint to fetch must be known at this point and for MQTT based machines, the topic of the datapoint, if the datatype is JSON, the respective key must also be known.
 
@@ -316,7 +310,108 @@ In the below shown page, select a target Elemental created RKE2 smartbox cluster
 
 The IFF smartbox related services will deployed to the single node cluster that will be responsbile for sending the machine data to PDT's digital asset. Any further changes to the deployment configs in the associated GitHub repo will be deployed automatically in future.
 
-### 7. NeuVector - Container Security Platform
+### 7. Semantic Modelling
+
+Once the asset JSON-LD is created with Scorpio API, and the real-time data from the machine starts flowing in to PDT, the validation rules for the entire asset type category can be created using modelling tools and JSON-Schema. However, PDT requires SHACL (Shapes Constraints Language) backed with RDF knowledge to create streaming validation jobs for Apache Flink (Details in later section). The PDT offers tools to use JSON-Schema to create the constraints and validate them against JSON-LD object, then convert the JSON-Schema to SHACL. Detailed documentation of this process can be found [here](https://github.com/IndustryFusion/DigitalTwin/tree/main/semantic-model/datamodel#readme).
+
+For Example:
+
+JSON-LD object created in last step: Also contains a real-time property related to temperature now as the smartboxe services are sending it.
+
+```
+{
+       "@context": "https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context.jsonld",
+       "id": "urn:ngsi-ld:asset:2:47",
+       "type": "iff:laser-cutter",
+       "alias": "Smart Laser",
+       "product-name": "MSE Smart FL",
+       "temperature": "21"
+}
+```
+
+JSON-Schema can be created to validate this object as shown below with some constraints.
+
+```
+{
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "<URL-Encoded expanded type, schema ID>",
+        "title": "Laser cutter",
+        "description": "Laser cutter template for IFF",
+        "type": "object",
+        "properties": {
+           "type": {
+            "const": "iff:laser-cutter"
+            },
+            "id": {
+              "type": "string",
+              "pattern": "^urn:[a-zA-Z0-9][a-zA-Z0-9-]{1,31}:([a-zA-Z0-9()+,.:=@;$_!*'-]|%[0-9a-fA-F]{2})*$"
+            },
+            "alias": {
+             "type": "string"
+            },
+            "product-name": {
+              "type": "string",
+            },
+            "temperature": {
+              "type": "string",
+              "minimum": "15",
+              "maximum": "25"
+            }
+        },
+        "required": ["type", "id"]
+}
+```
+
+Once the JSON-Schema is created as shown above, it can be validated with the JSON-LD and converted to SHACL using the tools [here](https://github.com/IndustryFusion/DigitalTwin/tree/main/semantic-model/datamodel#translating-json-schema-to-shacl).
+
+Detailed tutorial for such semantic modelling also with relationship concept to other assets can be found [here](https://github.com/IndustryFusion/DigitalTwin/blob/main/semantic-model/datamodel/Tutorial.md)
+
+#### Converting the SHACL to Flink Streaming Validation Jobs
+
+Once the SHACL is ready using the above described tools, the [shacl2flink](https://github.com/IndustryFusion/DigitalTwin/tree/main/semantic-model/shacl2flink) tool can be used to convert and deploy it as jobs on Apache Flink as described in the following steps.
+
+Step 1: Clone the [PDT](https://github.com/IndustryFusion/DigitalTwin.git) to factory server.
+
+Step 2: Go to semantic-model/kms/ folder. Create a new folder with a desired name, for example 'demo'.
+
+Step 3: Inside the newly created 'demo' folder, create 3 files with contents as shown below.
+
+ a. knowledge.ttl, that acts as a base to the SHACL file. Here for our example, this file only contains the type definition.
+ ```
+ @prefix : <http://www.industry-fusion.org/schema#> .
+ @prefix owl: <http://www.w3.org/2002/07/owl#> .
+ @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+ @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+ @prefix schema: <https://industry-fusion.com/schema#> .
+ @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+ :laser-cutter
+   rdf:type rdfs:Class ;
+ .
+ ```
+
+ b. model-example.jsonld, paste the JSON-LD created in the previous steps.
+ c. shacl.ttl, paste the result of the conversion from JSON-Schema.
+
+Step 4: Go the semantic-model/shacl2flink folder, and execute the following command.
+
+`make setup`
+
+`KMS_DIR=./../kms/demo make prepare-kms`
+
+`make flink-undeploy`
+
+`make flink-deploy`
+
+Once these steps are completed, the jobs will running in Apache Flink. According to the constraints written in the SHACL file, the alerts can be seen in Alerta UI and API.
+
+#### Alerts in Alerta UI
+
+For our example, the constraint for the temperature value is minimum inclusive 15 and maximum inclusive 25. When the value goes out of the range, an alert will be automatically visible in the Alerta UI avaliable at 'alerta.local' endpoint. (Use Keycloak real_user credentials for login)
+
+Similarly, if two assets are linked to each other using relationships in semantic modelling of the asset, the validation rules can also be extended to check whether the relationship graph is intact or not using SHACL.
+
+### 8. NeuVector - Container Security Platform
 
 If needed, The NeuVector must be installed on both factory server and all smartboxes.
 
