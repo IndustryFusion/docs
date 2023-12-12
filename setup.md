@@ -383,9 +383,7 @@ JSON-Schema can be created to validate this object as shown below with some cons
 }
 ```
 
-Once the JSON-Schema is created as shown above, it can be validated with the JSON-LD and converted to SHACL using the tools [here](https://github.com/IndustryFusion/DigitalTwin/tree/main/semantic-model/datamodel#translating-json-schema-to-shacl).
-
-Detailed tutorial for such semantic modelling also with relationship concept to other assets can be found [here](https://github.com/IndustryFusion/DigitalTwin/blob/main/semantic-model/datamodel/Tutorial.md)
+Once the JSON-Schema is created as shown above, it can be validated with the JSON-LD and converted to SHACL using the tools [here](https://github.com/IndustryFusion/DigitalTwin/tree/main/semantic-model/datamodel#translating-json-schema-to-shacl). Detailed tutorial for such semantic modelling also with relationship concept to other assets can be found [here].(https://github.com/IndustryFusion/DigitalTwin/blob/main/semantic-model/datamodel/Tutorial.md)
 
 
 #### Converting the SHACL to Flink Streaming Validation Jobs
